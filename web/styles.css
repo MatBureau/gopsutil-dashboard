@@ -1,0 +1,28 @@
+:root { font-family: system-ui, Arial, sans-serif; }
+body { margin: 0; background: #0f1115; color: #e7e9ee; }
+header { padding: 1rem 1.25rem; border-bottom: 1px solid #23262d; }
+h1 { margin: 0; font-size: 1.4rem; }
+main { padding: 1rem 1.25rem; }
+button, input[type="checkbox"] { cursor: pointer; }
+.grid {
+  margin-top: 1rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px,1fr));
+  gap: 1rem;
+}
+article {
+  background: #151821;
+  border: 1px solid #23262d;
+  border-radius: 12px;
+  padding: 0.75rem;
+  box-shadow: 0 6px 16px rgba(0,0,0,.2);
+}
+h2 { margin: .25rem 0 .75rem 0; font-size: 1.1rem; }
+pre {
+  margin: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  font-size: .85rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+section > button { margin-right: .75rem; }

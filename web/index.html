@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <title>Gopsutil Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="/web/styles.css" />
+</head>
+<body>
+  <header>
+    <h1>Gopsutil Dashboard</h1>
+    <p>CPU • Mémoire • Disque • Réseau • Hôte • Processus</p>
+  </header>
+
+  <main>
+    <section>
+      <button id="refresh">Rafraîchir</button>
+      <label><input type="checkbox" id="live"> Live (2s)</label>
+    </section>
+
+    <section class="grid">
+      <article>
+        <h2>CPU</h2>
+        <pre id="cpu"></pre>
+      </article>
+      <article>
+        <h2>Mémoire</h2>
+        <pre id="mem"></pre>
+      </article>
+      <article>
+        <h2>Disque</h2>
+        <pre id="disk"></pre>
+      </article>
+      <article>
+        <h2>Réseau</h2>
+        <pre id="net"></pre>
+      </article>
+      <article>
+        <h2>Hôte</h2>
+        <pre id="host"></pre>
+      </article>
+      <article>
+        <h2>Top Process (CPU)</h2>
+        <pre id="procs"></pre>
+      </article>
+    </section>
+  </main>
+
+  <script src="/web/app.js"></script>
+</body>
+</html>
