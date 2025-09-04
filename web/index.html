@@ -1,51 +1,141 @@
 <!doctype html>
 <html lang="fr">
+
 <head>
-  <meta charset="utf-8" />
-  <title>Gopsutil Dashboard</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="/web/styles.css" />
+    <meta charset="utf-8" />
+    <title>Gopsutil Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="styles.css" />
+    <!-- Charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1"></script>
 </head>
+
 <body>
-  <header>
-    <h1>Gopsutil Dashboard</h1>
-    <p>CPU • Mémoire • Disque • Réseau • Hôte • Processus</p>
-  </header>
+    <header class="topbar">
+        <div class="brand">
+            <h1>Gopsutil Dashboard</h1>
+            <p>CPU • Mémoire • Disque • Réseau • Hôte • Processus</p>
+        </div>
+        <div class="controls">
+            <button id="refresh" class="btn">Rafraîchir</button>
+            <label class="chk">
+                <input type="checkbox" id="live" />
+                <span>Live (2s)</span>
+            </label>
+        </div>
+        <button id="getHash" class="btn">Récupérer Hash</button>
+    </header>
 
-  <main>
-    <section>
-      <button id="refresh">Rafraîchir</button>
-      <label><input type="checkbox" id="live"> Live (2s)</label>
-    </section>
+    <main class="container">
+        <section class="grid">
+            <!-- Dernier Hash -->
+            <article class="card">
+                <div class="card-head">
+                    <h2>Dernier Hash</h2>
+                </div>
+                <div class="card-body">
+                    <div class="kv">
+                        <div><span>SHA-256 (timestamp)</span><b id="hash-val">—</b></div>
+                        <div><span>Bytes aléatoires (hex)</span><b id="hash-bytes">—</b></div>
+                        <div><span>Maj</span><b id="hash-ts">—</b></div>
+                    </div>
+                </div>
+            </article>
 
-    <section class="grid">
-      <article>
-        <h2>CPU</h2>
-        <pre id="cpu"></pre>
-      </article>
-      <article>
-        <h2>Mémoire</h2>
-        <pre id="mem"></pre>
-      </article>
-      <article>
-        <h2>Disque</h2>
-        <pre id="disk"></pre>
-      </article>
-      <article>
-        <h2>Réseau</h2>
-        <pre id="net"></pre>
-      </article>
-      <article>
-        <h2>Hôte</h2>
-        <pre id="host"></pre>
-      </article>
-      <article>
-        <h2>Top Process (CPU)</h2>
-        <pre id="procs"></pre>
-      </article>
-    </section>
-  </main>
+            <!-- CPU -->
+            <article class="card">
+                <div class="card-head">
+                    <h2>CPU</h2>
+                    <div class="pill" id="cpu-avg">-- %</div>
+                </div>
+                <div class="card-body">
+                    <canvas id="cpuLine" height="120"></canvas>
+                    <div id="cpu-cores" class="core-list"></div>
+                </div>
+            </article>
 
-  <script src="/web/app.js"></script>
+            <!-- Mémoire -->
+            <article class="card">
+                <div class="card-head">
+                    <h2>Mémoire</h2>
+                    <div class="pill" id="mem-usage">-- / --</div>
+                </div>
+                <div class="card-body">
+                    <div class="split">
+                        <canvas id="memDoughnut" height="160"></canvas>
+                        <div class="kv">
+                            <div><span>Total</span><b id="mem-total">--</b></div>
+                            <div><span>Utilisée</span><b id="mem-used">--</b></div>
+                            <div><span>Libre</span><b id="mem-free">--</b></div>
+                            <div><span>Swap</span><b id="mem-swap">--</b></div>
+                        </div>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Disque -->
+            <article class="card">
+                <div class="card-head">
+                    <h2>Disque</h2>
+                    <input id="diskFilter" class="input" placeholder="Filtrer par point de montage / type..." />
+                </div>
+                <div class="card-body">
+                    <div id="diskTable" class="table"></div>
+                </div>
+            </article>
+
+            <!-- Réseau -->
+            <article class="card">
+                <div class="card-head">
+                    <h2>Réseau</h2>
+                    <div class="pill" id="net-rate">↓ -- / ↑ --</div>
+                </div>
+                <div class="card-body">
+                    <canvas id="netLine" height="120"></canvas>
+                    <div id="netTable" class="table"></div>
+                </div>
+            </article>
+
+            <!-- Hôte -->
+            <article class="card">
+                <div class="card-head">
+                    <h2>Hôte</h2>
+                </div>
+                <div class="card-body">
+                    <div class="kv">
+                        <div><span>Hostname : </span><b id="host-name">--</b></div>
+                        <div><span>OS : </span><b id="host-os">--</b></div>
+                        <div><span>Uptime : </span><b id="host-uptime">--</b></div>
+                        <div><span>Kernel : </span><b id="host-kernel">--</b></div>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Processus -->
+            <article class="card">
+                <div class="card-head">
+                    <h2>Top Process (CPU)</h2>
+                    <div class="row">
+                        <input id="procFilter" class="input" placeholder="Rechercher (nom, user, cmd)..." />
+                        <select id="procTopN" class="input">
+                            <option value="10">Top 10</option>
+                            <option value="15" selected>Top 15</option>
+                            <option value="25">Top 25</option>
+                            <option value="50">Top 50</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="procTable" class="table"></div>
+                </div>
+            </article>
+
+        </section>
+    </main>
+
+    <footer class="foot">Données fournies par gopsutil • Actualisation côté client</footer>
+
+    <script src="app.js"></script>
 </body>
+
 </html>

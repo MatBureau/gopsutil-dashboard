@@ -2,6 +2,11 @@ package system
 
 import (
 	"context"
+	crand "crypto/rand"
+	"crypto/sha256"
+	"encoding/binary"
+	"encoding/hex"
+	"fmt"
 	"sync"
 	"time"
 
@@ -12,6 +17,11 @@ import (
 	"github.com/shirou/gopsutil/v3/net"
 	"github.com/shirou/gopsutil/v3/process"
 )
+
+type HashRandom struct {
+	HashBytes  []byte `json:"hashbytes"`
+	HashString string `json:"hashstring"`
+}
 
 type CPUInfo struct {
 	Info    []cpu.InfoStat  `json:"info"`
@@ -72,6 +82,25 @@ func WithTimeout(ctx context.Context, d time.Duration) (context.Context, context
 		ctx = context.Background()
 	}
 	return context.WithTimeout(ctx, d)
+}
+
+func CollectHash(ctx context.Context) (*HashRandom, error) {
+	_ = ctx // (non utilisé pour l'instant)
+
+	data := make([]byte, 10)
+	if _, err := crand.Read(data); err != nil {
+		return nil, fmt.Errorf("crypto/rand: %w", err)
+	}
+
+	var buf [8]byte
+	binary.BigEndian.PutUint64(buf[:], uint64(time.Now().Unix()))
+	sum := sha256.Sum256(buf[:])
+	hexHash := hex.EncodeToString(sum[:])
+
+	return &HashRandom{
+		HashBytes:  data,
+		HashString: hexHash,
+	}, nil
 }
 
 func CollectCPU(ctx context.Context) (*CPUInfo, error) {
@@ -171,7 +200,6 @@ func CollectNet(ctx context.Context, includeConnections bool) (*NetInfo, error) 
 
 	n := &NetInfo{Interfaces: ifaces, IOCounters: io}
 	if includeConnections {
-		// ATTENTION: peut être coûteux et nécessiter des privilèges
 		conns, _ := net.ConnectionsWithContext(ctx, "all")
 		n.Connections = conns
 	}
@@ -183,7 +211,7 @@ func CollectHost(ctx context.Context) (*HostInfo, error) {
 	if err != nil {
 		return nil, err
 	}
-	sensors, _ := host.SensorsTemperaturesWithContext(ctx) // best effort (Linux/root)
+	sensors, _ := host.SensorsTemperaturesWithContext(ctx)
 	return &HostInfo{Info: info, Sensors: sensors}, nil
 }
 
